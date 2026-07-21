@@ -18,8 +18,9 @@ export async function createClient() {
               cookieStore.set(name, value, options),
             );
           } catch {
-            // Called from a Server Component render — the proxy already
-            // refreshes the session on every request, so this is safe to ignore.
+            // Called from a Server Component render, where cookies can't be
+            // written. Session refreshes still happen; they just can't
+            // persist back to the browser from here. Safe to ignore.
           }
         },
       },
