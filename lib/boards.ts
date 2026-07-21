@@ -47,3 +47,24 @@ export async function createBoard(
   if (error) throw error;
   return data;
 }
+
+export async function renameBoard(
+  supabase: SupabaseClient,
+  boardId: string,
+  name: string,
+): Promise<void> {
+  const { error } = await supabase
+    .from("boards")
+    .update({ name })
+    .eq("id", boardId);
+
+  if (error) throw error;
+}
+
+export async function deleteBoard(
+  supabase: SupabaseClient,
+  boardId: string,
+): Promise<void> {
+  const { error } = await supabase.from("boards").delete().eq("id", boardId);
+  if (error) throw error;
+}

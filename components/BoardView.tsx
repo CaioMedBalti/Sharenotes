@@ -2,9 +2,9 @@
 
 import { useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { createBoard } from "@/lib/boards";
+import { createBoard, deleteBoard, renameBoard } from "@/lib/boards";
 import { createMessage, deleteMessage } from "@/lib/messages";
-import { uploadAttachment } from "@/lib/attachments";
+import { deleteAttachment, uploadAttachment } from "@/lib/attachments";
 import type { Board, Message } from "@/lib/types";
 import { BoardTabs } from "./BoardTabs";
 import { MessageList } from "./MessageList";
@@ -81,6 +81,35 @@ export function BoardView({
     await deleteMessage(supabase, message);
   }
 
+  async function handleRenameBoard(boardId: string, name: string) {
+    setBoards((prev) =>
+      prev.map((board) => (board.id === boardId ? { ...board, name } : board)),
+    );
+    await renameBoard(supabase, boardId, name);
+  }
+
+  async function handleDeleteBoard(boardId: string) {
+    const filesToDelete = messages.filter(
+      (message) => message.board_id === boardId && message.file_path,
+    );
+    const remainingBoards = boards.filter((board) => board.id !== boardId);
+
+    setBoards(remainingBoards);
+    setMessages((prev) =>
+      prev.filter((message) => message.board_id !== boardId),
+    );
+    if (activeBoardId === boardId) {
+      setActiveBoardId(remainingBoards[0]?.id ?? null);
+    }
+
+    await Promise.all(
+      filesToDelete.map((message) =>
+        deleteAttachment(supabase, message.file_path as string),
+      ),
+    );
+    await deleteBoard(supabase, boardId);
+  }
+
   return (
     <div className="flex flex-1 flex-col overflow-hidden md:flex-row">
       <BoardTabs
@@ -88,13 +117,24 @@ export function BoardView({
         activeBoardId={activeBoardId}
         onSelect={setActiveBoardId}
         onAddBoard={handleAddBoard}
+        onRenameBoard={handleRenameBoard}
+        onDeleteBoard={handleDeleteBoard}
       />
       <div className="flex flex-1 flex-col overflow-hidden">
-        <MessageList messages={activeMessages} onDelete={handleDelete} />
-        <NewMessageForm
-          onSend={handleSend}
-          disabled={sending || !activeBoardId}
-        />
+        {boards.length === 0 ? (
+          <div className="flex flex-1 items-center justify-center px-4 text-center text-sm text-neutral-400">
+            Nenhum quadro ainda. Crie um pelo &quot;+ Novo quadro&quot; ao
+            lado.
+          </div>
+        ) : (
+          <>
+            <MessageList messages={activeMessages} onDelete={handleDelete} />
+            <NewMessageForm
+              onSend={handleSend}
+              disabled={sending || !activeBoardId}
+            />
+          </>
+        )}
       </div>
     </div>
   );
