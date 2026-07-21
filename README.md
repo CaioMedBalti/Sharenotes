@@ -1,6 +1,6 @@
 # Notas
 
-Site pessoal para colar recados/textos e recuperá-los depois em outra máquina (ex: levar informação do PC de casa para o PC do trabalho, e vice-versa). Vários "quadros" (categorias) com uma lista de mensagens copiáveis cada um.
+Site pessoal para colar recados/textos (e agora arquivos) e recuperá-los depois em outra máquina (ex: levar informação do PC de casa para o PC do trabalho, e vice-versa). Vários "quadros" (categorias) com uma lista de mensagens copiáveis/baixáveis cada um.
 
 Stack: Next.js (App Router) + TypeScript + Tailwind CSS + Supabase (Postgres + Auth), deploy na Vercel.
 
@@ -9,7 +9,7 @@ Stack: Next.js (App Router) + TypeScript + Tailwind CSS + Supabase (Postgres + A
 ### 1. Projeto Supabase
 
 1. Crie (ou reaproveite) um projeto em [supabase.com](https://supabase.com).
-2. Vá em **SQL Editor** e rode o conteúdo de [`supabase-setup.sql`](./supabase-setup.sql) — cria as tabelas `boards`/`messages` e as políticas de Row Level Security.
+2. Vá em **SQL Editor** e rode o conteúdo de [`supabase-setup.sql`](./supabase-setup.sql) — cria as tabelas `boards`/`messages`, o bucket de armazenamento `attachments` (para os arquivos anexados) e as políticas de Row Level Security. Se seu banco já existia antes do suporte a anexos, rode em vez disso [`supabase-migration-attachments.sql`](./supabase-migration-attachments.sql).
 3. Em **Authentication → Providers**, confirme que **Email** está habilitado (vem habilitado por padrão).
 4. Em **Authentication → Settings**, desabilite **"Allow new users to sign up"** — este app não tem cadastro público, só o login.
 5. Em **Authentication → Users → Add user**, crie o único usuário: seu email + uma senha, marcando **"Auto Confirm User"**.
@@ -43,7 +43,8 @@ Abra `http://localhost:3000`, faça login com o usuário criado no Supabase e co
 - Logar deve carregar os quadros padrão.
 - Colar um texto multi-linha, enviar, e conferir que as quebras de linha e o auto-scroll funcionam.
 - **Copiar** deve colocar o texto exato na área de transferência.
-- **Apagar** pede uma confirmação (clique duas vezes) antes de remover.
+- Anexar um arquivo (📎) e enviar deve mostrar um cartão com nome/tamanho e um botão **Baixar** que baixa o arquivo original.
+- **Apagar** pede uma confirmação (clique duas vezes) antes de remover — e também apaga o arquivo do armazenamento, se houver.
 - Recarregar a página deve manter tudo — os dados vivem no Supabase, não em memória local.
 - Abrir a mesma URL em outro navegador/computador e logar deve mostrar os mesmos quadros e mensagens — esse é o objetivo do site.
 - **Sair** deve redirecionar para `/login` e bloquear o acesso à página protegida sem sessão.

@@ -9,7 +9,7 @@ export function MessageList({
   onDelete,
 }: {
   messages: Message[];
-  onDelete: (id: string) => void;
+  onDelete: (message: Message) => void;
 }) {
   const bottomRef = useRef<HTMLDivElement>(null);
 

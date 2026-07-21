@@ -1,4 +1,5 @@
 -- Rode este script no Supabase: SQL Editor > New query > Run
+-- (setup completo do zero — se seu banco já existe, use supabase-migration-attachments.sql)
 
 create table public.boards (
   id uuid primary key default gen_random_uuid(),
@@ -12,7 +13,11 @@ create table public.messages (
   id uuid primary key default gen_random_uuid(),
   board_id uuid not null references public.boards(id) on delete cascade,
   user_id uuid not null references auth.users(id) default auth.uid(),
-  content text not null,
+  content text,
+  file_path text,
+  file_name text,
+  file_size bigint,
+  file_type text,
   created_at timestamptz not null default now()
 );
 
@@ -30,3 +35,16 @@ create policy "boards_delete_own" on public.boards for delete using (auth.uid() 
 create policy "messages_select_own" on public.messages for select using (auth.uid() = user_id);
 create policy "messages_insert_own" on public.messages for insert with check (auth.uid() = user_id);
 create policy "messages_delete_own" on public.messages for delete using (auth.uid() = user_id);
+
+-- Bucket de armazenamento para os arquivos anexados
+insert into storage.buckets (id, name, public, file_size_limit)
+values ('attachments', 'attachments', false, 52428800);
+
+create policy "attachments_select_own" on storage.objects for select
+  using (bucket_id = 'attachments' and (storage.foldername(name))[1] = auth.uid()::text);
+
+create policy "attachments_insert_own" on storage.objects for insert
+  with check (bucket_id = 'attachments' and (storage.foldername(name))[1] = auth.uid()::text);
+
+create policy "attachments_delete_own" on storage.objects for delete
+  using (bucket_id = 'attachments' and (storage.foldername(name))[1] = auth.uid()::text);

@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { createBoard } from "@/lib/boards";
 import { createMessage, deleteMessage } from "@/lib/messages";
+import { uploadAttachment } from "@/lib/attachments";
 import type { Board, Message } from "@/lib/types";
 import { BoardTabs } from "./BoardTabs";
 import { MessageList } from "./MessageList";
@@ -41,25 +42,43 @@ export function BoardView({
     setActiveBoardId(board.id);
   }
 
-  async function handleSend(content: string) {
+  async function handleSend({
+    content,
+    file,
+  }: {
+    content: string;
+    file?: File;
+  }) {
     if (!activeBoardId) return;
     setSending(true);
     try {
-      const message = await createMessage(
-        supabase,
-        userId,
-        activeBoardId,
+      let fileMeta:
+        | { path: string; name: string; size: number; type: string }
+        | undefined;
+
+      if (file) {
+        const path = await uploadAttachment(supabase, userId, file);
+        fileMeta = {
+          path,
+          name: file.name,
+          size: file.size,
+          type: file.type || "application/octet-stream",
+        };
+      }
+
+      const message = await createMessage(supabase, userId, activeBoardId, {
         content,
-      );
+        file: fileMeta,
+      });
       setMessages((prev) => [...prev, message]);
     } finally {
       setSending(false);
     }
   }
 
-  async function handleDelete(messageId: string) {
-    setMessages((prev) => prev.filter((message) => message.id !== messageId));
-    await deleteMessage(supabase, messageId);
+  async function handleDelete(message: Message) {
+    setMessages((prev) => prev.filter((m) => m.id !== message.id));
+    await deleteMessage(supabase, message);
   }
 
   return (
