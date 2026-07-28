@@ -29,7 +29,7 @@ export function NewBoardForm({
     return (
       <button
         onClick={() => setOpen(true)}
-        className="flex h-11 shrink-0 items-center rounded-lg px-3 text-left text-sm font-medium text-neutral-400 transition hover:bg-black/5 hover:text-neutral-600 md:h-9 dark:hover:bg-white/10 dark:hover:text-neutral-300"
+        className="flex h-11 shrink-0 items-center rounded-lg px-3 text-left text-sm font-medium text-ink-faint transition hover:bg-hairline hover:text-ink-muted md:h-9"
       >
         + Novo quadro
       </button>
@@ -44,12 +44,12 @@ export function NewBoardForm({
         onChange={(e) => setName(e.target.value)}
         onBlur={() => !name && setOpen(false)}
         placeholder="Nome do quadro"
-        className="w-full min-w-0 rounded-lg border border-black/10 bg-white px-2 py-1 text-sm text-neutral-900 outline-none focus:border-amber-500 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-100"
+        className="w-full min-w-0 rounded-lg border border-hairline bg-paper-surface px-2 py-1 text-sm text-ink outline-none focus:border-accent"
       />
       <button
         type="submit"
         disabled={busy}
-        className="shrink-0 rounded-lg bg-amber-500 px-2 py-1 text-sm font-medium text-white disabled:opacity-60"
+        className="shrink-0 rounded-lg bg-accent px-2 py-1 text-sm font-medium text-accent-contrast disabled:opacity-60"
       >
         OK
       </button>

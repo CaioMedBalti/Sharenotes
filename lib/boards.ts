@@ -68,3 +68,20 @@ export async function deleteBoard(
   const { error } = await supabase.from("boards").delete().eq("id", boardId);
   if (error) throw error;
 }
+
+export type BoardActivity = {
+  board_id: string;
+  last_activity_at: string;
+  message_count: number;
+};
+
+/** Última atividade de cada quadro, sem carregar as mensagens — usado só
+ * pro aviso de "quadro parado". Depende da view `board_activity`
+ * (supabase-migration-notes.sql / supabase-setup.sql). */
+export async function getBoardActivity(
+  supabase: SupabaseClient,
+): Promise<BoardActivity[]> {
+  const { data, error } = await supabase.from("board_activity").select("*");
+  if (error) throw error;
+  return data ?? [];
+}

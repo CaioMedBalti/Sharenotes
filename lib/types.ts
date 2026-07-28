@@ -17,4 +17,5 @@ export type Message = {
   file_size: number | null;
   file_type: string | null;
   created_at: string;
+  updated_at: string;
 };

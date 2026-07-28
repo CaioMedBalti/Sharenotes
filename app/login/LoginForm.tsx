@@ -36,13 +36,13 @@ export function LoginForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="w-full max-w-sm rounded-2xl border border-black/10 bg-white/80 p-8 shadow-xl backdrop-blur dark:border-white/10 dark:bg-neutral-900/80"
+      className="w-full max-w-sm rounded-2xl border border-hairline bg-paper-surface p-8"
     >
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-50">
+        <h1 className="text-2xl font-semibold tracking-tight text-ink">
           Notas
         </h1>
-        <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+        <p className="mt-1 text-sm text-ink-muted">
           Entre para acessar seus recados.
         </p>
       </div>
@@ -50,7 +50,7 @@ export function LoginForm() {
       <div className="mb-4">
         <label
           htmlFor="email"
-          className="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300"
+          className="mb-1 block text-sm font-medium text-ink-muted"
         >
           Email
         </label>
@@ -61,14 +61,14 @@ export function LoginForm() {
           autoComplete="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full rounded-lg border border-black/10 bg-white px-3 py-2 text-sm text-neutral-900 outline-none transition focus:border-amber-500 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-100"
+          className="w-full rounded-lg border border-hairline bg-paper px-3 py-2 text-sm text-ink outline-none transition focus:border-accent"
         />
       </div>
 
       <div className="mb-5">
         <label
           htmlFor="password"
-          className="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300"
+          className="mb-1 block text-sm font-medium text-ink-muted"
         >
           Senha
         </label>
@@ -79,7 +79,7 @@ export function LoginForm() {
           autoComplete="current-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full rounded-lg border border-black/10 bg-white px-3 py-2 text-sm text-neutral-900 outline-none transition focus:border-amber-500 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-100"
+          className="w-full rounded-lg border border-hairline bg-paper px-3 py-2 text-sm text-ink outline-none transition focus:border-accent"
         />
       </div>
 
@@ -92,7 +92,7 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-lg bg-amber-500 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-60"
+        className="w-full rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-accent-contrast transition hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-60"
       >
         {loading ? "Entrando..." : "Entrar"}
       </button>

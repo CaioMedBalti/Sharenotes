@@ -1,33 +1,21 @@
 "use client";
 
-import { useEditor, EditorContent, type Editor } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import Placeholder from "@tiptap/extension-placeholder";
+import { EditorContent, useEditorState } from "@tiptap/react";
 import { useRef, useState, type ChangeEvent } from "react";
 import { MAX_FILE_SIZE } from "@/lib/attachments";
 import { formatFileSize } from "@/lib/format";
+import { EMPTY_HTML, getPlainText, useNoteEditor } from "@/lib/editor";
+import { clearDraft, loadDraft, saveDraft } from "@/lib/drafts";
 
-const EMPTY_HTML = "<p></p>";
-
-function isAllowedLinkUri(
-  url: string,
-  ctx: { defaultValidate: (url: string) => boolean },
-) {
-  try {
-    const { protocol } = new URL(url, window.location.origin);
-    return (
-      ["http:", "https:", "mailto:"].includes(protocol) &&
-      ctx.defaultValidate(url)
-    );
-  } catch {
-    return false;
-  }
-}
+const EDITOR_CLASS =
+  "max-h-[35vh] min-h-[42px] overflow-y-auto rounded-xl border border-hairline bg-paper-surface px-3 py-2 text-base text-ink outline-none transition focus:border-accent md:text-sm";
 
 export function NewMessageForm({
+  boardId,
   onSend,
   disabled,
 }: {
+  boardId: string;
   onSend: (params: {
     content: string;
     contentHtml: string | null;
@@ -38,57 +26,51 @@ export function NewMessageForm({
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const draftTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [initialContent] = useState(() => loadDraft(boardId) ?? undefined);
 
-  async function submit(editorInstance: Editor) {
-    const text = editorInstance.getText().trim();
-    if (!text && !file) return;
-
-    const html = editorInstance.getHTML();
-    const fileToSend = file ?? undefined;
-    editorInstance.commands.clearContent();
-    setFile(null);
-    await onSend({
-      content: text,
-      contentHtml: html === EMPTY_HTML ? null : html,
-      file: fileToSend,
-    });
-  }
-
-  const editor = useEditor({
-    immediatelyRender: false,
-    extensions: [
-      StarterKit.configure({
-        heading: false,
-        blockquote: false,
-        horizontalRule: false,
-        codeBlock: false,
-        link: {
-          openOnClick: false,
-          autolink: true,
-          linkOnPaste: true,
-          HTMLAttributes: { target: "_blank", rel: "noopener noreferrer" },
-          isAllowedUri: isAllowedLinkUri,
-        },
-      }),
-      Placeholder.configure({
-        placeholder: "Escreva, cole ou anexe um arquivo...",
-      }),
-    ],
-    editorProps: {
-      attributes: {
-        class:
-          "max-h-40 min-h-[42px] overflow-y-auto rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-neutral-900 outline-none transition focus:border-amber-500 dark:border-white/10 dark:bg-neutral-800 dark:text-neutral-100 [&_p]:m-0 [&_.is-editor-empty:first-child::before]:pointer-events-none [&_.is-editor-empty:first-child::before]:float-left [&_.is-editor-empty:first-child::before]:h-0 [&_.is-editor-empty:first-child::before]:text-neutral-400 [&_.is-editor-empty:first-child::before]:content-[attr(data-placeholder)]",
-      },
-      handleKeyDown: (_view, event) => {
-        if (event.key === "Enter" && !event.shiftKey) {
-          event.preventDefault();
-          if (editor) submit(editor);
-          return true;
-        }
-        return false;
-      },
+  const editor = useNoteEditor({
+    placeholder: "Escreva, cole ou anexe um arquivo... (Ctrl+Enter salva)",
+    className: EDITOR_CLASS,
+    content: initialContent,
+    onSubmit: submit,
+    onUpdate: (ed) => {
+      if (draftTimeoutRef.current) clearTimeout(draftTimeoutRef.current);
+      draftTimeoutRef.current = setTimeout(() => {
+        const html = ed.getHTML();
+        if (html === EMPTY_HTML) clearDraft(boardId);
+        else saveDraft(boardId, html);
+      }, 400);
     },
   });
+
+  async function submit() {
+    if (!editor) return;
+    const text = getPlainText(editor).trim();
+    if (!text && !file) return;
+
+    const html = editor.getHTML();
+    const fileToSend = file ?? undefined;
+    editor.commands.clearContent();
+    editor.commands.focus();
+    if (draftTimeoutRef.current) clearTimeout(draftTimeoutRef.current);
+    clearDraft(boardId);
+    setFile(null);
+    setError(null);
+    try {
+      await onSend({
+        content: text,
+        contentHtml: html === EMPTY_HTML ? null : html,
+        file: fileToSend,
+      });
+    } catch {
+      // Falhou salvar — devolve o texto e o arquivo pro usuário, nada se perde.
+      editor.commands.setContent(html);
+      saveDraft(boardId, html);
+      setFile(fileToSend ?? null);
+      setError("Não foi possível salvar. Tente novamente.");
+    }
+  }
 
   function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
     const selected = e.target.files?.[0];
@@ -104,18 +86,26 @@ export function NewMessageForm({
     setFile(selected);
   }
 
-  const canSend = Boolean(editor && (!editor.isEmpty || file) && !disabled);
+  const isEmpty = useEditorState({
+    editor,
+    selector: ({ editor: ed }) => ed?.isEmpty ?? true,
+  });
+
+  const canSend = Boolean(editor && (!isEmpty || file) && !disabled);
 
   return (
-    <div className="shrink-0 border-t border-black/10 p-3 dark:border-white/10">
+    <div
+      className="shrink-0 border-t border-hairline bg-paper p-3"
+      style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+    >
       {file && (
-        <div className="mb-2 flex items-center justify-between gap-2 rounded-lg border border-black/10 bg-neutral-50 px-3 py-1.5 text-xs dark:border-white/10 dark:bg-neutral-800">
-          <span className="truncate text-neutral-600 dark:text-neutral-300">
+        <div className="mb-2 flex items-center justify-between gap-2 rounded-lg border border-hairline bg-paper-surface px-3 py-1.5 text-xs">
+          <span className="truncate text-ink-muted">
             📎 {file.name} ({formatFileSize(file.size)})
           </span>
           <button
             onClick={() => setFile(null)}
-            className="shrink-0 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200"
+            className="shrink-0 text-ink-faint hover:text-ink-muted"
           >
             Remover
           </button>
@@ -133,17 +123,18 @@ export function NewMessageForm({
           onClick={() => fileInputRef.current?.click()}
           disabled={disabled}
           title="Anexar arquivo"
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-black/10 text-base text-neutral-500 transition hover:bg-black/5 disabled:opacity-40 md:h-8 md:w-8 md:text-sm dark:border-white/10 dark:text-neutral-400 dark:hover:bg-white/10"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-hairline text-base text-ink-muted transition hover:bg-hairline disabled:opacity-40 md:h-8 md:w-8 md:text-sm"
         >
           📎
         </button>
         <EditorContent editor={editor} className="min-w-0 flex-1" />
         <button
-          onClick={() => editor && submit(editor)}
+          onClick={() => submit()}
           disabled={!canSend}
-          className="flex h-11 shrink-0 items-center justify-center rounded-xl bg-amber-500 px-4 text-sm font-medium text-white transition hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-40 md:h-9"
+          title="Ctrl/Cmd+Enter também salva"
+          className="flex h-11 shrink-0 items-center justify-center rounded-xl bg-accent px-4 text-sm font-medium text-accent-contrast transition hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-40 md:h-9"
         >
-          Enviar
+          Salvar
         </button>
       </div>
     </div>

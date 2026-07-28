@@ -1,7 +1,9 @@
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { getBoards, seedDefaultBoards } from "@/lib/boards";
-import { getMessages } from "@/lib/messages";
+import { getMessagesForBoard } from "@/lib/messages";
+import { BOARD_COOKIE, SIDEBAR_COOKIE } from "@/lib/prefs";
 import { BoardView } from "@/components/BoardView";
 
 export default async function HomePage() {
@@ -19,16 +21,29 @@ export default async function HomePage() {
     boards = await seedDefaultBoards(supabase, user.id);
   }
 
-  const messages = await getMessages(
-    supabase,
-    boards.map((board) => board.id),
-  );
+  const cookieStore = await cookies();
+  const savedBoardId = cookieStore.get(BOARD_COOKIE)?.value;
+  const initialBoardId =
+    boards.find((board) => board.id === savedBoardId)?.id ??
+    boards[0]?.id ??
+    null;
+
+  const initialPage = initialBoardId
+    ? await getMessagesForBoard(supabase, initialBoardId)
+    : { messages: [], hasMore: false };
+
+  const initialSidebarCollapsed =
+    cookieStore.get(SIDEBAR_COOKIE)?.value === "1";
 
   return (
     <BoardView
       initialBoards={boards}
-      initialMessages={messages}
+      initialBoardId={initialBoardId}
+      initialMessages={initialPage.messages}
+      initialHasMore={initialPage.hasMore}
+      initialSidebarCollapsed={initialSidebarCollapsed}
       userId={user.id}
+      userEmail={user.email ?? ""}
     />
   );
 }

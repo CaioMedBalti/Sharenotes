@@ -9,7 +9,7 @@ Stack: Next.js (App Router) + TypeScript + Tailwind CSS + Supabase (Postgres + A
 ### 1. Projeto Supabase
 
 1. Crie (ou reaproveite) um projeto em [supabase.com](https://supabase.com).
-2. Vá em **SQL Editor** e rode o conteúdo de [`supabase-setup.sql`](./supabase-setup.sql) — cria as tabelas `boards`/`messages`, o bucket de armazenamento `attachments` (para os arquivos anexados) e as políticas de Row Level Security. Se seu banco já existia antes do suporte a anexos, rode em vez disso [`supabase-migration-attachments.sql`](./supabase-migration-attachments.sql).
+2. Vá em **SQL Editor** e rode o conteúdo de [`supabase-setup.sql`](./supabase-setup.sql) — cria as tabelas `boards`/`messages`, o bucket de armazenamento `attachments` (para os arquivos anexados) e as políticas de Row Level Security. Se seu banco já existia antes do suporte a anexos, rode em vez disso [`supabase-migration-attachments.sql`](./supabase-migration-attachments.sql). Se seu banco já existia antes da edição/autosave das entradas, rode também [`supabase-migration-notes.sql`](./supabase-migration-notes.sql) — adiciona a coluna `updated_at`, a política de UPDATE em `messages` e a view `board_activity` (usada pro aviso de quadro parado).
 3. Em **Authentication → Providers**, confirme que **Email** está habilitado (vem habilitado por padrão).
 4. Em **Authentication → Settings**, desabilite **"Allow new users to sign up"** — este app não tem cadastro público, só o login.
 5. Em **Authentication → Users → Add user**, crie o único usuário: seu email + uma senha, marcando **"Auto Confirm User"**.
@@ -41,10 +41,13 @@ Abra `http://localhost:3000`, faça login com o usuário criado no Supabase e co
 
 - Abrir a URL em uma aba anônima deve redirecionar para `/login`.
 - Logar deve carregar os quadros padrão.
-- Colar um texto multi-linha, enviar, e conferir que as quebras de linha e o auto-scroll funcionam.
+- Colar um texto multi-linha (Ctrl/Cmd+Enter salva) e conferir que as quebras de linha e o auto-scroll funcionam.
 - **Copiar** deve colocar o texto exato na área de transferência.
-- Anexar um arquivo (📎) e enviar deve mostrar um cartão com nome/tamanho e um botão **Baixar** que baixa o arquivo original.
+- Anexar um arquivo (📎) e salvar deve mostrar um cartão com nome/tamanho e um botão **Baixar** que baixa o arquivo original.
+- Clicar numa entrada existente deve abrir edição inline; o indicador ao lado do horário deve mostrar "Salvando…" e depois "Salvo" sem precisar clicar em nada.
 - **Apagar** pede uma confirmação (clique duas vezes) antes de remover — e também apaga o arquivo do armazenamento, se houver.
-- Recarregar a página deve manter tudo — os dados vivem no Supabase, não em memória local.
+- Recarregar a página deve manter tudo — os dados vivem no Supabase, não em memória local — e deve abrir no último quadro usado, não sempre no primeiro.
+- No celular, o ☰ no topo abre uma gaveta lateral com os quadros; no desktop, o mesmo botão recolhe/expande a coluna lateral.
+- Se algum quadro estiver sem atividade há 60+ dias, aparece um aviso dispensável com um botão "Ver" que abre o painel de limpeza — a exclusão exige marcar os quadros manualmente.
 - Abrir a mesma URL em outro navegador/computador e logar deve mostrar os mesmos quadros e mensagens — esse é o objetivo do site.
 - **Sair** deve redirecionar para `/login` e bloquear o acesso à página protegida sem sessão.
