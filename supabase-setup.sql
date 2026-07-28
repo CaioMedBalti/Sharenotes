@@ -14,6 +14,7 @@ create table public.messages (
   board_id uuid not null references public.boards(id) on delete cascade,
   user_id uuid not null references auth.users(id) default auth.uid(),
   content text,
+  content_html text,
   file_path text,
   file_name text,
   file_size bigint,

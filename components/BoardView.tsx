@@ -44,9 +44,11 @@ export function BoardView({
 
   async function handleSend({
     content,
+    contentHtml,
     file,
   }: {
     content: string;
+    contentHtml: string | null;
     file?: File;
   }) {
     if (!activeBoardId) return;
@@ -68,6 +70,7 @@ export function BoardView({
 
       const message = await createMessage(supabase, userId, activeBoardId, {
         content,
+        contentHtml,
         file: fileMeta,
       });
       setMessages((prev) => [...prev, message]);

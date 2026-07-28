@@ -29,7 +29,7 @@ export function NewBoardForm({
     return (
       <button
         onClick={() => setOpen(true)}
-        className="shrink-0 rounded-lg px-3 py-2 text-left text-sm font-medium text-neutral-400 transition hover:bg-black/5 hover:text-neutral-600 dark:hover:bg-white/10 dark:hover:text-neutral-300"
+        className="flex h-11 shrink-0 items-center rounded-lg px-3 text-left text-sm font-medium text-neutral-400 transition hover:bg-black/5 hover:text-neutral-600 md:h-9 dark:hover:bg-white/10 dark:hover:text-neutral-300"
       >
         + Novo quadro
       </button>

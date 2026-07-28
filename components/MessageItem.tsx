@@ -29,6 +29,28 @@ export function MessageItem({
   const supabase = useMemo(() => createClient(), []);
 
   async function handleCopy() {
+    if (message.content_html) {
+      try {
+        const htmlBlob = new Blob([message.content_html], {
+          type: "text/html",
+        });
+        const textBlob = new Blob([message.content ?? ""], {
+          type: "text/plain",
+        });
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            "text/html": htmlBlob,
+            "text/plain": textBlob,
+          }),
+        ]);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1500);
+        return;
+      } catch {
+        // Navegador sem suporte a ClipboardItem/HTML — cai pro texto puro abaixo.
+      }
+    }
+
     if (!message.content) return;
     await navigator.clipboard.writeText(message.content);
     setCopied(true);
@@ -62,15 +84,22 @@ export function MessageItem({
 
   return (
     <div className="group max-w-2xl rounded-2xl border border-black/10 bg-white px-4 py-3 shadow-sm dark:border-white/10 dark:bg-neutral-900">
-      {message.content && (
-        <p className="whitespace-pre-wrap break-words text-sm leading-relaxed text-neutral-800 dark:text-neutral-100">
-          {message.content}
-        </p>
+      {message.content_html ? (
+        <div
+          className="rich-content whitespace-pre-wrap break-words text-sm leading-relaxed text-neutral-800 dark:text-neutral-100"
+          dangerouslySetInnerHTML={{ __html: message.content_html }}
+        />
+      ) : (
+        message.content && (
+          <p className="whitespace-pre-wrap break-words text-sm leading-relaxed text-neutral-800 dark:text-neutral-100">
+            {message.content}
+          </p>
+        )
       )}
 
       {message.file_path && message.file_name && (
         <div
-          className={`flex items-center gap-3 rounded-xl border border-black/10 bg-neutral-50 px-3 py-2 dark:border-white/10 dark:bg-neutral-800 ${message.content ? "mt-2" : ""}`}
+          className={`flex items-center gap-3 rounded-xl border border-black/10 bg-neutral-50 px-3 py-2 dark:border-white/10 dark:bg-neutral-800 ${message.content || message.content_html ? "mt-2" : ""}`}
         >
           <span className="text-xl">📎</span>
           <div className="min-w-0 flex-1">
@@ -86,7 +115,7 @@ export function MessageItem({
           <button
             onClick={handleDownload}
             disabled={downloading}
-            className="shrink-0 rounded-md bg-amber-500 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-amber-600 disabled:opacity-60"
+            className="flex h-11 shrink-0 items-center justify-center rounded-md bg-amber-500 px-3 text-xs font-medium text-white transition hover:bg-amber-600 disabled:opacity-60 md:h-8"
           >
             {downloading ? "..." : "Baixar"}
           </button>
@@ -97,18 +126,18 @@ export function MessageItem({
         <span className="text-xs text-neutral-400">
           {formatTime(message.created_at)}
         </span>
-        <div className="flex gap-2 opacity-100 transition md:opacity-0 md:group-hover:opacity-100 md:focus-within:opacity-100">
-          {message.content && (
+        <div className="flex gap-3 opacity-100 transition md:gap-2 md:opacity-0 md:group-hover:opacity-100 md:focus-within:opacity-100">
+          {(message.content || message.content_html) && (
             <button
               onClick={handleCopy}
-              className="rounded-md px-2 py-1 text-xs font-medium text-neutral-500 hover:bg-black/5 dark:text-neutral-400 dark:hover:bg-white/10"
+              className="flex h-11 min-w-11 items-center justify-center rounded-md px-3 text-xs font-medium text-neutral-500 hover:bg-black/5 md:h-7 md:min-w-0 md:px-2 dark:text-neutral-400 dark:hover:bg-white/10"
             >
               {copied ? "Copiado!" : "Copiar"}
             </button>
           )}
           <button
             onClick={handleDeleteClick}
-            className={`rounded-md px-2 py-1 text-xs font-medium transition ${
+            className={`flex h-11 min-w-11 items-center justify-center rounded-md px-3 text-xs font-medium transition md:h-7 md:min-w-0 md:px-2 ${
               confirmingDelete
                 ? "bg-red-500 text-white"
                 : "text-neutral-500 hover:bg-black/5 dark:text-neutral-400 dark:hover:bg-white/10"

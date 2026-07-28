@@ -12,3 +12,64 @@ body {
 * {
   scrollbar-width: thin;
 }
+
+/* Tailwind Preflight zera o estilo padrão dessas tags — restaura pro
+   conteúdo rico (composer e mensagens renderizadas) */
+.rich-content p,
+.ProseMirror p {
+  margin: 0;
+}
+
+.rich-content strong,
+.ProseMirror strong {
+  font-weight: 700;
+}
+
+.rich-content em,
+.ProseMirror em {
+  font-style: italic;
+}
+
+.rich-content s,
+.ProseMirror s {
+  text-decoration: line-through;
+}
+
+.rich-content a,
+.ProseMirror a {
+  color: #d97706;
+  text-decoration: underline;
+}
+
+.rich-content ul,
+.ProseMirror ul {
+  list-style: disc;
+  padding-left: 1.25rem;
+}
+
+.rich-content ol,
+.ProseMirror ol {
+  list-style: decimal;
+  padding-left: 1.25rem;
+}
+
+.rich-content li,
+.ProseMirror li {
+  margin: 0.125rem 0;
+}
+
+.rich-content code,
+.ProseMirror code {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  background: rgba(0, 0, 0, 0.06);
+  padding: 0.1rem 0.3rem;
+  border-radius: 0.25rem;
+  font-size: 0.9em;
+}
+
+@media (prefers-color-scheme: dark) {
+  .rich-content code,
+  .ProseMirror code {
+    background: rgba(255, 255, 255, 0.1);
+  }
+}

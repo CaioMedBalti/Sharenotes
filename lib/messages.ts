@@ -24,6 +24,7 @@ export async function createMessage(
   boardId: string,
   params: {
     content?: string | null;
+    contentHtml?: string | null;
     file?: { path: string; name: string; size: number; type: string };
   },
 ): Promise<Message> {
@@ -33,6 +34,7 @@ export async function createMessage(
       board_id: boardId,
       user_id: userId,
       content: params.content || null,
+      content_html: params.contentHtml || null,
       file_path: params.file?.path ?? null,
       file_name: params.file?.name ?? null,
       file_size: params.file?.size ?? null,

@@ -62,7 +62,10 @@ export function BoardTabs({
   return (
     <nav className="flex shrink-0 gap-1 overflow-x-auto border-b border-black/10 bg-neutral-50/60 p-2 dark:border-white/10 dark:bg-neutral-900/40 md:w-56 md:flex-col md:overflow-visible md:border-r md:border-b-0">
       {boards.map((board) => (
-        <div key={board.id} className="group flex shrink-0 items-center gap-0.5">
+        <div
+          key={board.id}
+          className="group flex shrink-0 items-center gap-2 md:gap-0.5"
+        >
           {editingId === board.id ? (
             <input
               autoFocus
@@ -70,13 +73,13 @@ export function BoardTabs({
               onChange={(e) => setEditValue(e.target.value)}
               onBlur={commitEdit}
               onKeyDown={handleEditKeyDown}
-              className="w-full min-w-0 rounded-lg border border-amber-500 bg-white px-3 py-2 text-sm text-neutral-900 outline-none dark:bg-neutral-800 dark:text-neutral-100"
+              className="h-11 w-full min-w-0 rounded-lg border border-amber-500 bg-white px-3 text-sm text-neutral-900 outline-none md:h-9 dark:bg-neutral-800 dark:text-neutral-100"
             />
           ) : (
             <>
               <button
                 onClick={() => onSelect(board.id)}
-                className={`min-w-0 flex-1 truncate rounded-lg px-3 py-2 text-left text-sm font-medium transition ${
+                className={`flex h-11 min-w-0 flex-1 items-center truncate rounded-lg px-3 text-left text-sm font-medium transition md:h-9 ${
                   board.id === activeBoardId
                     ? "bg-amber-500 text-white"
                     : "text-neutral-600 hover:bg-black/5 dark:text-neutral-300 dark:hover:bg-white/10"
@@ -84,18 +87,18 @@ export function BoardTabs({
               >
                 {board.name}
               </button>
-              <div className="flex shrink-0 gap-0.5 opacity-100 transition md:opacity-0 md:group-hover:opacity-100">
+              <div className="flex shrink-0 gap-2 opacity-100 transition md:gap-0.5 md:opacity-0 md:group-hover:opacity-100">
                 <button
                   onClick={() => startEditing(board)}
                   title="Renomear quadro"
-                  className="rounded-md px-1.5 py-1.5 text-xs text-neutral-400 hover:bg-black/5 dark:hover:bg-white/10"
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-base text-neutral-400 hover:bg-black/5 md:h-7 md:w-7 md:text-xs dark:hover:bg-white/10"
                 >
                   ✏️
                 </button>
                 <button
                   onClick={() => handleDeleteClick(board.id)}
                   title="Excluir quadro"
-                  className={`rounded-md px-1.5 py-1.5 text-xs transition ${
+                  className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-base transition md:h-7 md:w-7 md:text-xs ${
                     confirmingId === board.id
                       ? "bg-red-500 text-white"
                       : "text-neutral-400 hover:bg-black/5 dark:hover:bg-white/10"

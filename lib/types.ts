@@ -11,6 +11,7 @@ export type Message = {
   board_id: string;
   user_id: string;
   content: string | null;
+  content_html: string | null;
   file_path: string | null;
   file_name: string | null;
   file_size: number | null;
