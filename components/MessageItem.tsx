@@ -44,7 +44,7 @@ function MessageItemImpl({
   const supabase = useMemo(() => createClient(), []);
   const isTextEditable = Boolean(message.content || message.content_html);
 
-  const { status, schedule, flush } = useAutosave<{
+  const { status, errorMessage, schedule, flush } = useAutosave<{
     content: string;
     contentHtml: string | null;
   }>(async ({ content, contentHtml }) => {
@@ -203,11 +203,14 @@ function MessageItemImpl({
         <span className="text-xs text-ink-faint">
           {formatTime(message.created_at)}
           {editing && (
-            <span className="ml-2 text-accent">
+            <span
+              className={status === "error" ? "ml-2 text-red-500" : "ml-2 text-accent"}
+              title={status === "error" ? (errorMessage ?? undefined) : undefined}
+            >
               {status === "saving"
                 ? "Salvando…"
                 : status === "error"
-                  ? "Erro ao salvar"
+                  ? `Erro ao salvar${errorMessage ? `: ${errorMessage}` : ""}`
                   : status === "saved"
                     ? "Salvo"
                     : ""}

@@ -3,7 +3,7 @@
 import { EditorContent, useEditorState } from "@tiptap/react";
 import { useRef, useState, type ChangeEvent } from "react";
 import { MAX_FILE_SIZE } from "@/lib/attachments";
-import { formatFileSize } from "@/lib/format";
+import { formatFileSize, getErrorMessage } from "@/lib/format";
 import { EMPTY_HTML, getPlainText, useNoteEditor } from "@/lib/editor";
 import { clearDraft, loadDraft, saveDraft } from "@/lib/drafts";
 
@@ -63,12 +63,13 @@ export function NewMessageForm({
         contentHtml: html === EMPTY_HTML ? null : html,
         file: fileToSend,
       });
-    } catch {
+    } catch (err) {
       // Falhou salvar — devolve o texto e o arquivo pro usuário, nada se perde.
       editor.commands.setContent(html);
       saveDraft(boardId, html);
       setFile(fileToSend ?? null);
-      setError("Não foi possível salvar. Tente novamente.");
+      console.error("Falha ao salvar mensagem:", err);
+      setError(`Não foi possível salvar: ${getErrorMessage(err)}`);
     }
   }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { getErrorMessage } from "./format";
 
 export type SaveStatus = "idle" | "saving" | "saved" | "error";
 
@@ -15,6 +16,7 @@ export function useAutosave<T>(
   delayMs = 800,
 ) {
   const [status, setStatus] = useState<SaveStatus>("idle");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingRef = useRef<{ value: T } | null>(null);
   const saveRef = useRef(save);
@@ -23,12 +25,19 @@ export function useAutosave<T>(
 
   const runSave = useCallback(async (value: T) => {
     pendingRef.current = null;
-    if (mountedRef.current) setStatus("saving");
+    if (mountedRef.current) {
+      setStatus("saving");
+      setErrorMessage(null);
+    }
     try {
       await saveRef.current(value);
       if (mountedRef.current) setStatus("saved");
-    } catch {
-      if (mountedRef.current) setStatus("error");
+    } catch (err) {
+      console.error("Falha no autosave:", err);
+      if (mountedRef.current) {
+        setStatus("error");
+        setErrorMessage(getErrorMessage(err));
+      }
     }
   }, []);
 
@@ -66,5 +75,5 @@ export function useAutosave<T>(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return { status, schedule, flush };
+  return { status, errorMessage, schedule, flush };
 }
